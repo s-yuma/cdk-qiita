@@ -15,7 +15,7 @@ export interface KnowledgeItem {
 }
 
 export const useKnowledgeData = () => {
-  const { data, error, isLoading } = useSWR<KnowledgeItem[]>("https://3t8k7x1kc6.execute-api.ap-northeast-1.amazonaws.com/prod//test", fetcher)
+  const { data, error, isLoading } = useSWR<KnowledgeItem[]>("https://m6ld96ezo0.execute-api.ap-northeast-1.amazonaws.com/prod/test", fetcher)
 
   return {
     knowledgeData: data ?? [],

@@ -60,7 +60,7 @@ export default function KnowledgeForm() {
     setIsSubmitting(true);
 
     await axios.post(
-      "https://3t8k7x1kc6.execute-api.ap-northeast-1.amazonaws.com/prod/test",
+      "https://m6ld96ezo0.execute-api.ap-northeast-1.amazonaws.com/prod/test",
       {
         userId: uuidv4(),
         title: title,

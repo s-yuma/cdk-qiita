@@ -177,7 +177,7 @@ export default function KnowledgeDetailPage() {
 
     try {
       const response = await axios.get(
-        `https://3t8k7x1kc6.execute-api.ap-northeast-1.amazonaws.com/prod/test/${userId}`
+        `https://m6ld96ezo0.execute-api.ap-northeast-1.amazonaws.com/prod/test/${userId}`
       );
       console.log("data", response.data);
 
