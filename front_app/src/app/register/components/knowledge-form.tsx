@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-
+import { v4 as uuidv4 } from "uuid";
 import { useState } from "react";
 import {
   Card,
@@ -23,9 +23,12 @@ import {
   Send as SendIcon,
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
+import axios from "axios";
 
 export default function KnowledgeForm() {
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [content, setContent] = useState(""); // ★ content 追加
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [author, setAuthor] = useState("");
@@ -56,20 +59,27 @@ export default function KnowledgeForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // ここでフォームデータを処理します
-    console.log({
-      title,
-      tags,
-      author,
-    });
+    await axios.post(
+      "https://3t8k7x1kc6.execute-api.ap-northeast-1.amazonaws.com/prod/test",
+      {
+        userId: uuidv4(),
+        title: title,
+        description: description,
+        author: author,
+        date: "2025-02-18",
+        tags: tags,
+        content: content,
+      }
+    );
 
-    // 送信完了後の処理
     setTimeout(() => {
       setIsSubmitting(false);
-      // フォームをリセット
       setTitle("");
+      setDescription("");
       setTags([]);
+      setTagInput("");
       setAuthor("");
+      setContent(""); // ★ content リセット
       alert("ナレッジが正常に共有されました！");
     }, 1000);
   };
@@ -103,27 +113,12 @@ export default function KnowledgeForm() {
           borderTopRightRadius: 12,
         }}
       />
+
       <form onSubmit={handleSubmit}>
-        <CardContent
-          sx={{
-            pt: 3,
-            pb: 3,
-            display: "flex",
-            flexDirection: "column",
-            gap: 3,
-          }}
-        >
+        <CardContent sx={{ pt: 3, pb: 3, display: "flex", flexDirection: "column", gap: 3 }}>
+          {/* タイトル */}
           <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{
-                mb: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                color: "white",
-              }}
-            >
+            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
               <BookIcon fontSize="small" />
               タイトル
             </Typography>
@@ -137,6 +132,7 @@ export default function KnowledgeForm() {
               InputProps={{
                 sx: {
                   bgcolor: "rgba(255, 255, 255, 0.1)",
+                  color: "white",
                   "& .MuiOutlinedInput-notchedOutline": {
                     borderColor: "rgba(255, 255, 255, 0.2)",
                   },
@@ -146,23 +142,80 @@ export default function KnowledgeForm() {
                   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#9c27b0",
                   },
-                  color: "white",
                 },
               }}
             />
           </Box>
 
+          {/* 説明 */}
           <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{
-                mb: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                color: "white",
+            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
+              <BookIcon fontSize="small" />
+              説明
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder="ナレッジの詳細説明を入力してください"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              multiline
+              rows={4}
+              required
+              variant="outlined"
+              InputProps={{
+                sx: {
+                  bgcolor: "rgba(255, 255, 255, 0.1)",
+                  color: "white",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.2)",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.3)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#9c27b0",
+                  },
+                },
               }}
-            >
+            />
+          </Box>
+
+          {/* コンテンツ（★ 追加部分） */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
+              <BookIcon fontSize="small" />
+              コンテンツ
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder="ナレッジの本文を入力してください（Markdownなど）"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              multiline
+              rows={10}
+              required
+              variant="outlined"
+              InputProps={{
+                sx: {
+                  bgcolor: "rgba(255, 255, 255, 0.1)",
+                  color: "white",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.2)",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255, 255, 255, 0.3)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#9c27b0",
+                  },
+                },
+              }}
+            />
+          </Box>
+
+          {/* タグ */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
               <TagIcon fontSize="small" />
               タグ
             </Typography>
@@ -176,12 +229,6 @@ export default function KnowledgeForm() {
                     bgcolor: alpha("#9c27b0", 0.3),
                     color: "white",
                     border: "1px solid rgba(156, 39, 176, 0.3)",
-                    "& .MuiChip-deleteIcon": {
-                      color: "rgba(255, 255, 255, 0.7)",
-                      "&:hover": {
-                        color: "#ff5252",
-                      },
-                    },
                   }}
                 />
               ))}
@@ -197,6 +244,7 @@ export default function KnowledgeForm() {
                 InputProps={{
                   sx: {
                     bgcolor: "rgba(255, 255, 255, 0.1)",
+                    color: "white",
                     "& .MuiOutlinedInput-notchedOutline": {
                       borderColor: "rgba(255, 255, 255, 0.2)",
                     },
@@ -206,7 +254,6 @@ export default function KnowledgeForm() {
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                       borderColor: "#9c27b0",
                     },
-                    color: "white",
                   },
                 }}
               />
@@ -220,29 +267,11 @@ export default function KnowledgeForm() {
                 追加
               </Button>
             </Box>
-            <Typography
-              variant="caption"
-              sx={{
-                mt: 1,
-                display: "block",
-                color: "rgba(255, 255, 255, 0.7)",
-              }}
-            >
-              複数のタグを追加できます。入力後、Enterキーまたは追加ボタンを押してください。
-            </Typography>
           </Box>
 
+          {/* 作成者 */}
           <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{
-                mb: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                color: "white",
-              }}
-            >
+            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
               <PersonIcon fontSize="small" />
               作成者
             </Typography>
@@ -256,6 +285,7 @@ export default function KnowledgeForm() {
               InputProps={{
                 sx: {
                   bgcolor: "rgba(255, 255, 255, 0.1)",
+                  color: "white",
                   "& .MuiOutlinedInput-notchedOutline": {
                     borderColor: "rgba(255, 255, 255, 0.2)",
                   },
@@ -265,7 +295,6 @@ export default function KnowledgeForm() {
                   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#9c27b0",
                   },
-                  color: "white",
                 },
               }}
             />
@@ -277,6 +306,8 @@ export default function KnowledgeForm() {
             variant="outlined"
             onClick={() => {
               setTitle("");
+              setDescription("");
+              setContent("");
               setTags([]);
               setTagInput("");
               setAuthor("");

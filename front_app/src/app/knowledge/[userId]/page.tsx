@@ -1,8 +1,19 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Box, Typography, Button, Paper, IconButton, Chip, Divider, Avatar, Card, CardContent } from "@mui/material"
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  IconButton,
+  Chip,
+  Divider,
+  Avatar,
+  Card,
+  CardContent,
+} from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
   Bookmark as BookmarkIcon,
@@ -11,99 +22,102 @@ import {
   Edit as EditIcon,
   CalendarToday as CalendarIcon,
   Person as PersonIcon,
-} from "@mui/icons-material"
-import { ThemeProvider, createTheme } from "@mui/material/styles"
-import CssBaseline from "@mui/material/CssBaseline"
+} from "@mui/icons-material";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import axios from "axios";
 
 // ナレッジデータの型定義
 interface KnowledgeItem {
-  id: number
-  title: string
-  description: string
-  author: string
-  date: string
-  tags: string[]
-  content: string
+  userId: string;
+  title: string;
+  description: string;
+  author: string;
+  date: string;
+  tags: string[];
+  content: string;
 }
 
 // サンプルデータ（短縮版）
-const knowledgeData: KnowledgeItem[] = [
-  {
-    id: 1,
-    title: "Next.jsアプリケーションのデプロイ方法",
-    description: "Vercelを使用したNext.jsアプリケーションのデプロイ手順について解説します。",
-    author: "田中太郎",
-    date: "2023-04-15",
-    tags: ["Next.js", "Vercel", "デプロイ"],
-    content: `
-# Next.jsアプリケーションのデプロイ方法
+// const knowledgeData: KnowledgeItem[] = [
+//   {
+//     userId: "1",
+//     title: "Next.jsアプリケーションのデプロイ方法",
+//     description:
+//       "Vercelを使用したNext.jsアプリケーションのデプロイ手順について解説します。",
+//     author: "田中太郎",
+//     date: "2023-04-15",
+//     tags: ["Next.js", "Vercel", "デプロイ"],
+//     content: `
+// # Next.jsアプリケーションのデプロイ方法
 
-Next.jsで開発したアプリケーションをVercelにデプロイする方法を解説します。Vercelは、Next.jsの開発元が提供するホスティングサービスで、Next.jsアプリケーションのデプロイに最適化されています。
+// Next.jsで開発したアプリケーションをVercelにデプロイする方法を解説します。Vercelは、Next.jsの開発元が提供するホスティングサービスで、Next.jsアプリケーションのデプロイに最適化されています。
 
-## 準備
+// ## 準備
 
-デプロイを始める前に、以下のものが必要です：
+// デプロイを始める前に、以下のものが必要です：
 
-1. GitHubアカウント（またはGitLab、BitBucket）
-2. Vercelアカウント
-3. デプロイ準備の整ったNext.jsプロジェクト
+// 1. GitHubアカウント（またはGitLab、BitBucket）
+// 2. Vercelアカウント
+// 3. デプロイ準備の整ったNext.jsプロジェクト
 
-## デプロイ手順
+// ## デプロイ手順
 
-### 1. Vercelアカウントの作成
+// ### 1. Vercelアカウントの作成
 
-まだVercelアカウントをお持ちでない場合は、Vercel公式サイトにアクセスして、アカウントを作成します。GitHubアカウントでのサインアップが最も簡単です。
+// まだVercelアカウントをお持ちでない場合は、Vercel公式サイトにアクセスして、アカウントを作成します。GitHubアカウントでのサインアップが最も簡単です。
 
-### 2. プロジェクトのインポート
+// ### 2. プロジェクトのインポート
 
-1. Vercelダッシュボードにログインします。
-2. 「New Project」ボタンをクリックします。
-3. GitHubリポジトリを連携し、デプロイしたいリポジトリを選択します。
-4. 必要に応じて環境変数を設定します。
-5. 「Deploy」ボタンをクリックしてデプロイを開始します。
-    `,
-  },
-  {
-    id: 2,
-    title: "TypeScriptの基本的な型定義",
-    description: "TypeScriptで使用される基本的な型定義とその使い方について説明します。",
-    author: "鈴木花子",
-    date: "2023-04-10",
-    tags: ["TypeScript", "プログラミング", "型定義"],
-    content: `
-# TypeScriptの基本的な型定義
+// 1. Vercelダッシュボードにログインします。
+// 2. 「New Project」ボタンをクリックします。
+// 3. GitHubリポジトリを連携し、デプロイしたいリポジトリを選択します。
+// 4. 必要に応じて環境変数を設定します。
+// 5. 「Deploy」ボタンをクリックしてデプロイを開始します。
+//     `,
+//   },
+//   {
+//     userId: "2",
+//     title: "TypeScriptの基本的な型定義",
+//     description:
+//       "TypeScriptで使用される基本的な型定義とその使い方について説明します。",
+//     author: "鈴木花子",
+//     date: "2023-04-10",
+//     tags: ["TypeScript", "プログラミング", "型定義"],
+//     content: `
+// # TypeScriptの基本的な型定義
 
-TypeScriptは、JavaScriptに静的型付けを追加した言語です。型定義を使用することで、コードの品質向上、バグの早期発見、IDEのサポート強化などのメリットがあります。
+// TypeScriptは、JavaScriptに静的型付けを追加した言語です。型定義を使用することで、コードの品質向上、バグの早期発見、IDEのサポート強化などのメリットがあります。
 
-## プリミティブ型
+// ## プリミティブ型
 
-TypeScriptには、以下のようなプリミティブ型があります：
+// TypeScriptには、以下のようなプリミティブ型があります：
 
-\`\`\`typescript
-// 文字列
-let name: string = "John";
+// \`\`\`typescript
+// // 文字列
+// let name: string = "John";
 
-// 数値
-let age: number = 30;
+// // 数値
+// let age: number = 30;
 
-// 真偽値
-let isActive: boolean = true;
-\`\`\`
+// // 真偽値
+// let isActive: boolean = true;
+// \`\`\`
 
-## 配列
+// ## 配列
 
-配列の型定義は以下のように行います：
+// 配列の型定義は以下のように行います：
 
-\`\`\`typescript
-// 文字列の配列
-let names: string[] = ["John", "Jane", "Bob"];
+// \`\`\`typescript
+// // 文字列の配列
+// let names: string[] = ["John", "Jane", "Bob"];
 
-// 別の書き方
-let numbers: Array<number> = [1, 2, 3];
-\`\`\`
-    `,
-  },
-]
+// // 別の書き方
+// let numbers: Array<number> = [1, 2, 3];
+// \`\`\`
+//     `,
+//   },
+// ];
 
 // MUIのカスタムテーマを作成
 const theme = createTheme({
@@ -147,80 +161,103 @@ const theme = createTheme({
       },
     },
   },
-})
+});
 
 export default function KnowledgeDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const [knowledge, setKnowledge] = useState<KnowledgeItem | null>(null)
-  const [isBookmarked, setIsBookmarked] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const params = useParams();
+  const router = useRouter();
+  const [knowledge, setKnowledge] = useState<KnowledgeItem | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // IDに基づいてナレッジデータを取得
-    const id = Number(params.id)
-    const foundKnowledge = knowledgeData.find((item) => item.id === id)
+ useEffect(() => {
+  const fetchData = async () => {
+    const userId = params.userId;
+    console.log(userId);
 
-    if (foundKnowledge) {
-      setKnowledge(foundKnowledge)
+    try {
+      const response = await axios.get(
+        `https://3t8k7x1kc6.execute-api.ap-northeast-1.amazonaws.com/prod/test/${userId}`
+      );
+      console.log("data", response.data);
+
+      // 🔁 ダミーから実データへ
+      setKnowledge(response.data);
+    } catch (error) {
+      console.error("Error fetching knowledge:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setLoading(false)
-  }, [params.id])
+  fetchData();
+}, [params.userId]);
 
   const handleBackToList = () => {
-    router.push("/list")
-  }
+    router.push("/");
+  };
 
   const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked)
-  }
+    setIsBookmarked(!isBookmarked);
+  };
 
   const handleShare = () => {
     // 共有機能（実際の実装ではクリップボードにコピーなど）
-    alert("共有機能は現在実装中です。")
-  }
+    alert("共有機能は現在実装中です。");
+  };
 
   const handleEdit = () => {
     // 編集機能（実際の実装では編集ページへ遷移）
-    alert("編集機能は現在実装中です。")
-  }
+    alert("編集機能は現在実装中です。");
+  };
 
   // マークダウンのような内容をHTMLに変換する簡易関数
   const renderContent = (content: string) => {
-    if (!content) return null
+    if (!content) return null;
 
     // 行ごとに処理
-    const lines = content.split("\n")
+    const lines = content.split("\n");
 
     return lines.map((line, index) => {
       // 見出し
       if (line.startsWith("# ")) {
         return (
-          <Typography variant="h4" sx={{ mt: 4, mb: 2, fontWeight: 700 }} key={index}>
+          <Typography
+            variant="h4"
+            sx={{ mt: 4, mb: 2, fontWeight: 700 }}
+            key={index}
+          >
             {line.substring(2)}
           </Typography>
-        )
+        );
       } else if (line.startsWith("## ")) {
         return (
-          <Typography variant="h5" sx={{ mt: 3, mb: 2, fontWeight: 600 }} key={index}>
+          <Typography
+            variant="h5"
+            sx={{ mt: 3, mb: 2, fontWeight: 600 }}
+            key={index}
+          >
             {line.substring(3)}
           </Typography>
-        )
+        );
       } else if (line.startsWith("### ")) {
         return (
-          <Typography variant="h6" sx={{ mt: 2, mb: 1.5, fontWeight: 600 }} key={index}>
+          <Typography
+            variant="h6"
+            sx={{ mt: 2, mb: 1.5, fontWeight: 600 }}
+            key={index}
+          >
             {line.substring(4)}
           </Typography>
-        )
+        );
       }
       // コードブロック
       else if (line.startsWith("```") && !line.endsWith("```")) {
         // コードブロックの開始
-        return null
+        return null;
       } else if (line.endsWith("```") && !line.startsWith("```")) {
         // コードブロックの終了
-        return null
+        return null;
       } else if (line.startsWith("```") && line.endsWith("```")) {
         // 1行のコードブロック
         return (
@@ -238,22 +275,26 @@ export default function KnowledgeDetailPage() {
           >
             {line.substring(3, line.length - 3)}
           </Paper>
-        )
+        );
       }
       // 空行
       else if (line.trim() === "") {
-        return <Box sx={{ height: "1rem" }} key={index} />
+        return <Box sx={{ height: "1rem" }} key={index} />;
       }
       // 通常のテキスト
       else {
         return (
-          <Typography variant="body1" sx={{ my: 1, lineHeight: 1.7 }} key={index}>
+          <Typography
+            variant="body1"
+            sx={{ my: 1, lineHeight: 1.7 }}
+            key={index}
+          >
             {line}
           </Typography>
-        )
+        );
       }
-    })
-  }
+    });
+  };
 
   if (loading) {
     return (
@@ -262,7 +303,8 @@ export default function KnowledgeDetailPage() {
         <Box
           sx={{
             minHeight: "100vh",
-            background: "linear-gradient(135deg, #0f172a 0%, #4a1d96 50%, #0f172a 100%)",
+            background:
+              "linear-gradient(135deg, #0f172a 0%, #4a1d96 50%, #0f172a 100%)",
             p: { xs: 2, md: 6 },
             display: "flex",
             justifyContent: "center",
@@ -274,7 +316,7 @@ export default function KnowledgeDetailPage() {
           </Typography>
         </Box>
       </ThemeProvider>
-    )
+    );
   }
 
   if (!knowledge) {
@@ -284,7 +326,8 @@ export default function KnowledgeDetailPage() {
         <Box
           sx={{
             minHeight: "100vh",
-            background: "linear-gradient(135deg, #0f172a 0%, #4a1d96 50%, #0f172a 100%)",
+            background:
+              "linear-gradient(135deg, #0f172a 0%, #4a1d96 50%, #0f172a 100%)",
             p: { xs: 2, md: 6 },
             display: "flex",
             flexDirection: "column",
@@ -311,7 +354,7 @@ export default function KnowledgeDetailPage() {
           </Button>
         </Box>
       </ThemeProvider>
-    )
+    );
   }
 
   return (
@@ -320,13 +363,21 @@ export default function KnowledgeDetailPage() {
       <Box
         sx={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #0f172a 0%, #4a1d96 50%, #0f172a 100%)",
+          background:
+            "linear-gradient(135deg, #0f172a 0%, #4a1d96 50%, #0f172a 100%)",
           p: { xs: 2, md: 6 },
         }}
       >
         <Box sx={{ maxWidth: "900px", mx: "auto" }}>
           {/* ヘッダー部分 */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
             <Button
               variant="outlined"
               startIcon={<ArrowBackIcon />}
@@ -346,10 +397,14 @@ export default function KnowledgeDetailPage() {
               <IconButton
                 onClick={handleBookmark}
                 sx={{
-                  color: isBookmarked ? "primary.main" : "rgba(255, 255, 255, 0.7)",
+                  color: isBookmarked
+                    ? "primary.main"
+                    : "rgba(255, 255, 255, 0.7)",
                   "&:hover": { bgcolor: "rgba(255, 255, 255, 0.05)" },
                 }}
-                aria-label={isBookmarked ? "ブックマークを解除" : "ブックマークに追加"}
+                aria-label={
+                  isBookmarked ? "ブックマークを解除" : "ブックマークに追加"
+                }
               >
                 {isBookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
               </IconButton>
@@ -386,11 +441,17 @@ export default function KnowledgeDetailPage() {
             }}
           >
             <CardContent sx={{ p: 4 }}>
-              <Typography variant="h4" sx={{ mb: 2, color: "white", fontWeight: 700 }}>
+              <Typography
+                variant="h4"
+                sx={{ mb: 2, color: "white", fontWeight: 700 }}
+              >
                 {knowledge.title}
               </Typography>
 
-              <Typography variant="body1" sx={{ mb: 3, color: "rgba(255, 255, 255, 0.7)" }}>
+              <Typography
+                variant="body1"
+                sx={{ mb: 3, color: "rgba(255, 255, 255, 0.7)" }}
+              >
                 {knowledge.description}
               </Typography>
 
@@ -408,9 +469,17 @@ export default function KnowledgeDetailPage() {
                 ))}
               </Box>
 
-              <Divider sx={{ my: 2, borderColor: "rgba(255, 255, 255, 0.1)" }} />
+              <Divider
+                sx={{ my: 2, borderColor: "rgba(255, 255, 255, 0.1)" }}
+              />
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Avatar
                     sx={{
@@ -421,13 +490,22 @@ export default function KnowledgeDetailPage() {
                   >
                     <PersonIcon fontSize="small" />
                   </Avatar>
-                  <Typography variant="body2" sx={{ color: "rgba(255, 255, 255, 0.9)" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "rgba(255, 255, 255, 0.9)" }}
+                  >
                     {knowledge.author}
                   </Typography>
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CalendarIcon fontSize="small" sx={{ color: "rgba(255, 255, 255, 0.5)" }} />
-                  <Typography variant="body2" sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
+                  <CalendarIcon
+                    fontSize="small"
+                    sx={{ color: "rgba(255, 255, 255, 0.5)" }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+                  >
                     {knowledge.date}
                   </Typography>
                 </Box>
@@ -443,7 +521,9 @@ export default function KnowledgeDetailPage() {
               p: { xs: 2, sm: 4 },
             }}
           >
-            <Box sx={{ color: "rgba(255, 255, 255, 0.9)" }}>{renderContent(knowledge.content)}</Box>
+            <Box sx={{ color: "rgba(255, 255, 255, 0.9)" }}>
+              {renderContent(knowledge.content)}
+            </Box>
           </Card>
 
           {/* フッター */}
@@ -458,7 +538,8 @@ export default function KnowledgeDetailPage() {
                 px: 4,
                 py: 1,
                 "&:hover": {
-                  background: "linear-gradient(90deg, #7b1fa2 0%, #303f9f 100%)",
+                  background:
+                    "linear-gradient(90deg, #7b1fa2 0%, #303f9f 100%)",
                   boxShadow: "0 4px 10px rgba(156, 39, 176, 0.3)",
                 },
               }}
@@ -469,5 +550,5 @@ export default function KnowledgeDetailPage() {
         </Box>
       </Box>
     </ThemeProvider>
-  )
+  );
 }

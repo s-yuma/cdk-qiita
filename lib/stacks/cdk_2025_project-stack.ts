@@ -1,22 +1,52 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import { DynamoConstruct } from '../constructs/dynamo-construct';
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { DynamoConstruct } from "../constructs/dynamo-construct";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import { LambdaConstruct } from "../constructs/lambda-construct";
+import { ApiGatewayConstruct } from "../constructs/api-gateway-construct";
+// import { CognitoConstruct } from '../constructs/cognito-Construct';
 export class Cdk2025ProjectStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    new DynamoConstruct(this, "TableConsttruct", {
-      tableName: "knowledge",
-      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
-    })
-
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'Cdk2025ProjectQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
+    const knowledgeTableConstruct = new DynamoConstruct(
+      this,
+      "TableConstruct",
+      {
+        tableName: "knowledge",
+        partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      }
+    );
+    // const lambda = new LambdaConstruct(this, "Lambda", {
+    //   functionName: "TestFunc",
+    //   handler: "index.handler",
+    //   entry: "../../lambda/index.ts",
     // });
+
+    // const cognito = new CognitoConstruct(this,"Cognito")
+    const getLambda = new LambdaConstruct(this, "GetLambda", {
+      functionName: "GetKnowledge",
+      handler: "index.handler",
+      entry: "../../lambda/get/index.ts",
+    });
+
+    const postLambda = new LambdaConstruct(this, "PostLambda", {
+      functionName: "PostKnowledge",
+      handler: "index.handler",
+      entry: "../../lambda/post/index.ts",
+    });
+    
+    knowledgeTableConstruct.table.grantReadData(getLambda.lambdaFn);
+    knowledgeTableConstruct.table.grantWriteData(postLambda.lambdaFn);
+
+    new ApiGatewayConstruct(this, "TestApi", {
+      apiName: "TestApi",
+      route: "test",
+      methodToLambdaMap: {
+        GET: getLambda.lambdaFn,
+        POST: postLambda.lambdaFn,
+      },
+    });
   }
 }

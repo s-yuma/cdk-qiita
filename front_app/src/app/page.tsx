@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Typography,
@@ -14,67 +14,17 @@ import {
   Button,
   Divider,
   Avatar,
-} from "@mui/material"
+} from "@mui/material";
 import {
   Search as SearchIcon,
   Book as BookIcon,
   Add as AddIcon,
   CalendarToday as CalendarIcon,
-} from "@mui/icons-material"
-import { ThemeProvider, createTheme } from "@mui/material/styles"
-import CssBaseline from "@mui/material/CssBaseline"
+} from "@mui/icons-material";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { useKnowledgeData } from "@/(feature)/main/hooks/useKnowledgeData";
 
-// サンプルデータ
-const knowledgeData = [
-  {
-    id: 1,
-    title: "Next.jsアプリケーションのデプロイ方法",
-    description: "Vercelを使用したNext.jsアプリケーションのデプロイ手順について解説します。",
-    author: "田中太郎",
-    date: "2023-04-15",
-    tags: ["Next.js", "Vercel", "デプロイ"],
-  },
-  {
-    id: 2,
-    title: "TypeScriptの基本的な型定義",
-    description: "TypeScriptで使用される基本的な型定義とその使い方について説明します。",
-    author: "鈴木花子",
-    date: "2023-04-10",
-    tags: ["TypeScript", "プログラミング", "型定義"],
-  },
-  {
-    id: 3,
-    title: "効率的なGitワークフロー",
-    description: "チーム開発における効率的なGitブランチ戦略とワークフローについて共有します。",
-    author: "佐藤次郎",
-    date: "2023-04-05",
-    tags: ["Git", "チーム開発", "ワークフロー"],
-  },
-  {
-    id: 4,
-    title: "React Hooksの活用方法",
-    description: "ReactのuseStateやuseEffectなどの基本的なHooksの使い方と実践例を紹介します。",
-    author: "山田健太",
-    date: "2023-04-01",
-    tags: ["React", "Hooks", "フロントエンド"],
-  },
-  {
-    id: 5,
-    title: "CSSグリッドレイアウトの基本",
-    description: "モダンなウェブデザインに欠かせないCSSグリッドレイアウトの基本的な使い方を解説します。",
-    author: "高橋恵",
-    date: "2023-03-28",
-    tags: ["CSS", "レイアウト", "ウェブデザイン"],
-  },
-  {
-    id: 6,
-    title: "JavaScriptの非同期処理",
-    description: "Promise、async/awaitを使った効率的な非同期処理の実装方法について説明します。",
-    author: "伊藤誠",
-    date: "2023-03-20",
-    tags: ["JavaScript", "非同期処理", "Promise"],
-  },
-]
 
 // MUIのカスタムテーマを作成
 const theme = createTheme({
@@ -118,29 +68,38 @@ const theme = createTheme({
       },
     },
   },
-})
+});
 
 export default function KnowledgeListPage() {
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState("")
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+
+
+  const { knowledgeData, isLoading, isError } = useKnowledgeData();
+  console.log(knowledgeData);
+
+  if (isLoading) return <p>読み込み中...</p>;
+  if (isError) return <p>エラーが発生しました。</p>;
 
   // 検索フィルター
   const filteredKnowledge = knowledgeData.filter(
     (item) =>
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())),
-  )
+      item.tags.some((tag) =>
+        tag.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+  );
 
   // 新規作成ページへ移動
   const handleCreateNew = () => {
-    router.push("/")
-  }
+    router.push("/register");
+  };
 
   // 詳細ページへ移動
-  const handleViewDetails = (id: number) => {
-    router.push(`/knowledge/${id}`)
-  }
+  const handleViewDetails = (id: string) => {
+    router.push(`/knowledge/${id}`);
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -148,12 +107,20 @@ export default function KnowledgeListPage() {
       <Box
         sx={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #0f172a 0%, #4a1d96 50%, #0f172a 100%)",
+          background:
+            "linear-gradient(135deg, #0f172a 0%, #4a1d96 50%, #0f172a 100%)",
           p: { xs: 2, md: 6 },
         }}
       >
         <Box sx={{ maxWidth: "1200px", mx: "auto" }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 4,
+            }}
+          >
             <Typography variant="h4" sx={{ color: "white" }}>
               ナレッジベース
             </Typography>
@@ -165,7 +132,8 @@ export default function KnowledgeListPage() {
                 background: "linear-gradient(90deg, #9c27b0 0%, #3f51b5 100%)",
                 color: "white",
                 "&:hover": {
-                  background: "linear-gradient(90deg, #7b1fa2 0%, #303f9f 100%)",
+                  background:
+                    "linear-gradient(90deg, #7b1fa2 0%, #303f9f 100%)",
                   boxShadow: "0 4px 10px rgba(156, 39, 176, 0.3)",
                 },
               }}
@@ -174,7 +142,10 @@ export default function KnowledgeListPage() {
             </Button>
           </Box>
 
-          <Typography variant="body1" sx={{ mb: 4, color: "rgba(255, 255, 255, 0.7)" }}>
+          <Typography
+            variant="body1"
+            sx={{ mb: 4, color: "rgba(255, 255, 255, 0.7)" }}
+          >
             チームの知識を共有・検索できるプラットフォーム
           </Typography>
 
@@ -219,17 +190,29 @@ export default function KnowledgeListPage() {
                 backdropFilter: "blur(10px)",
               }}
             >
-              <Typography variant="h6" sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
+              <Typography
+                variant="h6"
+                sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+              >
                 検索結果がありません
               </Typography>
-              <Typography variant="body2" sx={{ color: "rgba(255, 255, 255, 0.5)", mt: 1 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "rgba(255, 255, 255, 0.5)", mt: 1 }}
+              >
                 別のキーワードで検索してみてください
               </Typography>
             </Box>
           ) : (
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 3 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                gap: 3,
+              }}
+            >
               {filteredKnowledge.map((item) => (
-                <Box key={item.id}>
+                <Box key={`${item.userId}-${item.title}`}>
                   <Card
                     sx={{
                       bgcolor: "rgba(255, 255, 255, 0.1)",
@@ -244,11 +227,13 @@ export default function KnowledgeListPage() {
                         cursor: "pointer",
                       },
                     }}
-                    onClick={() => handleViewDetails(item.id)}
+                    onClick={() => handleViewDetails(item.userId)}
                   >
                     <CardHeader
                       title={
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           <BookIcon fontSize="small" />
                           <Typography variant="h6" sx={{ fontSize: "1.1rem" }}>
                             {item.title}
@@ -257,7 +242,14 @@ export default function KnowledgeListPage() {
                       }
                       sx={{ pb: 1 }}
                     />
-                    <CardContent sx={{ pt: 0, flex: 1, display: "flex", flexDirection: "column" }}>
+                    <CardContent
+                      sx={{
+                        pt: 0,
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
                       <Typography
                         variant="body2"
                         sx={{
@@ -284,7 +276,7 @@ export default function KnowledgeListPage() {
                       >
                         {item.tags.map((tag, index) => (
                           <Chip
-                            key={index}
+                            key={`${tag}-${index}`}
                             label={tag}
                             size="small"
                             sx={{
@@ -296,9 +288,23 @@ export default function KnowledgeListPage() {
                           />
                         ))}
                       </Box>
-                      <Divider sx={{ my: 1.5, borderColor: "rgba(255, 255, 255, 0.1)" }} />
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Divider
+                        sx={{
+                          my: 1.5,
+                          borderColor: "rgba(255, 255, 255, 0.1)",
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          mt: 1,
+                        }}
+                      >
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           <Avatar
                             sx={{
                               width: 24,
@@ -309,13 +315,32 @@ export default function KnowledgeListPage() {
                           >
                             {item.author.charAt(0)}
                           </Avatar>
-                          <Typography variant="body2" sx={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "0.85rem" }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "rgba(255, 255, 255, 0.7)",
+                              fontSize: "0.85rem",
+                            }}
+                          >
                             {item.author}
                           </Typography>
                         </Box>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <CalendarIcon sx={{ fontSize: "0.85rem", color: "rgba(255, 255, 255, 0.5)" }} />
-                          <Typography variant="body2" sx={{ color: "rgba(255, 255, 255, 0.5)", fontSize: "0.75rem" }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <CalendarIcon
+                            sx={{
+                              fontSize: "0.85rem",
+                              color: "rgba(255, 255, 255, 0.5)",
+                            }}
+                          />
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "rgba(255, 255, 255, 0.5)",
+                              fontSize: "0.75rem",
+                            }}
+                          >
                             {item.date}
                           </Typography>
                         </Box>
@@ -329,5 +354,5 @@ export default function KnowledgeListPage() {
         </Box>
       </Box>
     </ThemeProvider>
-  )
+  );
 }
