@@ -1,9 +1,16 @@
-// hooks/useKnowledgeData.ts
 import useSWR from "swr";
-import axios from "axios"; // axios をインポート
+import axios from "axios";
+import { fetchAuthSession } from "aws-amplify/auth"; // Amplify v6+
 
-// axiosを使ったfetcher関数
-const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+const fetcher = async (url: string) => {
+  const { tokens } = await fetchAuthSession();
+  const idToken = tokens?.idToken?.toString(); // ← Cognito ID トークン
+  return axios
+    .get(url, {
+      headers: { Authorization: `Bearer ${idToken}` }, // Cognito 用デフォルトヘッダー名
+    })
+    .then((res) => res.data);
+};
 
 export interface KnowledgeItem {
   userId: string;
