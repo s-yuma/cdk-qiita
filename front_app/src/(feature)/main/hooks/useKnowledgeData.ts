@@ -1,7 +1,9 @@
 // hooks/useKnowledgeData.ts
 import useSWR from "swr";
-import axios from "axios";
-import { fetchAuthSession } from "aws-amplify/auth";
+import axios from "axios"; // axios をインポート
+
+// axiosを使ったfetcher関数
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export interface KnowledgeItem {
   userId: string;
@@ -12,34 +14,10 @@ export interface KnowledgeItem {
   tags: string[];
 }
 
-// 認証付きfetcher関数
-const authenticatedFetcher = async (url: string) => {
-  try {
-    const session = await fetchAuthSession();
-    const token = session.tokens?.idToken?.toString();
-
-    if (!token) {
-      throw new Error("Authentication token not found");
-    }
-
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error("API request failed:", error);
-    throw error;
-  }
-};
-
 export const useKnowledgeData = () => {
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading } = useSWR<KnowledgeItem[]>(
     "https://jwm993ajle.execute-api.ap-northeast-1.amazonaws.com/prod/test",
-    authenticatedFetcher
+    fetcher
   );
 
   return {

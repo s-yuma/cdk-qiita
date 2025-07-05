@@ -17,61 +17,27 @@ export class ApiGatewayConstruct extends Construct {
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    const FRONTEND_ORIGIN = "https://main.d2l529um1j39do.amplifyapp.com";
-
-    // REST API 本体
+    // API Gateway 作成
     this.api = new apigateway.RestApi(this, "RestApi", {
       restApiName: props.apiName,
       defaultCorsPreflightOptions: {
-        allowOrigins: [FRONTEND_ORIGIN],
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: [
-          "Content-Type", 
-          "Authorization", 
-          "X-Amz-Date", 
-          "X-Api-Key", 
-          "X-Amz-Security-Token",
-          "X-Amz-User-Agent"
-        ],
-        allowCredentials: true, // 認証情報の送信を許可
+        allowHeaders: ["Content-Type"],
       },
     });
 
-    // API Gateway の GatewayResponse (4xx/5xx) にも CORS を追加
-    new apigateway.GatewayResponse(this, "Default4xxGatewayResponse", {
-      restApi: this.api,
-      type: apigateway.ResponseType.DEFAULT_4XX,
-      responseHeaders: {
-        "Access-Control-Allow-Origin": `'${FRONTEND_ORIGIN}'`,
-        "Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
-        "Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-        "Access-Control-Allow-Credentials": "'true'",
-      },
-    });
-
-    new apigateway.GatewayResponse(this, "Default5xxGatewayResponse", {
-      restApi: this.api,
-      type: apigateway.ResponseType.DEFAULT_5XX,
-      responseHeaders: {
-        "Access-Control-Allow-Origin": `'${FRONTEND_ORIGIN}'`,
-        "Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
-        "Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-        "Access-Control-Allow-Credentials": "'true'",
-      },
-    });
-
-    // Cognito Authorizer をこの RestApi にバインド
+    // Cognito Authorizer に RestApi をバインド（手動で）
     if (props.authorizer && "restApi" in props.authorizer) {
       // @ts-ignore
       props.authorizer.restApi = this.api;
     }
 
-    // /<route>
+    // /test エンドポイント作成
     const resource = this.api.root.addResource(props.route);
-    // /<route>/{userId}
     const resourceWithId = resource.addResource("{userId}");
 
-    // 認可設定
+    // 認証オプション設定（あれば）
     const methodOptions: apigateway.MethodOptions | undefined = props.authorizer
       ? {
           authorizer: props.authorizer,
@@ -79,12 +45,16 @@ export class ApiGatewayConstruct extends Construct {
         }
       : undefined;
 
-    // HTTP メソッドと Lambda を紐付け
-    for (const [method, fn] of Object.entries(props.methodToLambdaMap)) {
-      resource.addMethod(method, new apigateway.LambdaIntegration(fn), methodOptions);
+    // 各HTTPメソッドに Lambda をマッピング
+    for (const method in props.methodToLambdaMap) {
+      resource.addMethod(
+        method,
+        new apigateway.LambdaIntegration(props.methodToLambdaMap[method]),
+        methodOptions
+      );
     }
 
-    // /<route>/{userId} の GET
+    // GETメソッドを /test/{userId} にも設定
     if (props.methodToLambdaMap["GET"]) {
       resourceWithId.addMethod(
         "GET",
@@ -92,5 +62,41 @@ export class ApiGatewayConstruct extends Construct {
         methodOptions
       );
     }
+
+    // OPTIONS メソッドを明示的に追加（CORS対応）
+    resource.addMethod(
+      "OPTIONS",
+      new apigateway.MockIntegration({
+        integrationResponses: [
+          {
+            statusCode: "200",
+            responseParameters: {
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type'",
+              "method.response.header.Access-Control-Allow-Origin": "'*'",
+              "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
+            },
+            responseTemplates: {
+              "application/json": "",
+            },
+          },
+        ],
+        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
+        requestTemplates: {
+          "application/json": '{"statusCode": 200}',
+        },
+      }),
+      {
+        methodResponses: [
+          {
+            statusCode: "200",
+            responseParameters: {
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+            },
+          },
+        ],
+      }
+    );
   }
 }
