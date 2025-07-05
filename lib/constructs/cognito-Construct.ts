@@ -1,16 +1,18 @@
 import { Construct } from "constructs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import { Duration, RemovalPolicy } from "aws-cdk-lib";
 
 export class CognitoConstruct extends Construct {
-    public readonly userPool: cognito.UserPool;
-    public readonly authorizer: apigateway.CognitoUserPoolsAuthorizer;
-    public readonly userPoolClient: cognito.UserPoolClient;
-    public readonly hostedUiDomain: cognito.UserPoolDomain;
+  public readonly userPool: cognito.UserPool;
+  public readonly authorizer: apigateway.CognitoUserPoolsAuthorizer;
+  public readonly userPoolClient: cognito.UserPoolClient;
+  public readonly hostedUiDomain: cognito.UserPoolDomain;
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
+    // UserPool の作成
     this.userPool = new cognito.UserPool(this, "UserPool", {
       selfSignUpEnabled: true,
       signInAliases: { email: true },
@@ -21,17 +23,26 @@ export class CognitoConstruct extends Construct {
         requireUppercase: true,
         requireDigits: true,
       },
+      userPoolName: "MyAppUserPool",
+      removalPolicy: RemovalPolicy.DESTROY, // 開発環境用
     });
 
-    const userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
+    // UserPoolClient の作成
+    this.userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
       userPool: this.userPool,
       generateSecret: false,
       authFlows: {
         userPassword: true,
+        userSrp: true,
       },
+      // トークンの有効期限設定
+      accessTokenValidity: Duration.hours(24),
+      idTokenValidity: Duration.hours(24),
+      refreshTokenValidity: Duration.days(30),
       oAuth: {
         flows: {
-          implicitCodeGrant: true,
+          // Authorization Code Grant に変更
+          authorizationCodeGrant: true,
         },
         scopes: [
           cognito.OAuthScope.EMAIL,
@@ -39,25 +50,29 @@ export class CognitoConstruct extends Construct {
           cognito.OAuthScope.PROFILE,
         ],
         callbackUrls: [
-          "https://main.d2l529um1j39do.amplifyapp.com", // ← 実際のフロントエンドURLに変更
+          "https://main.d2l529um1j39do.amplifyapp.com",
+          "http://localhost:3000",
         ],
-        logoutUrls: ["https://www.yahoo.co.jp"],
+        logoutUrls: ["https://www.yahoo.co.jp", "http://localhost:3000"],
       },
     });
 
-    // Hosted UI 用のドメイン
+    // Hosted UI Domain の作成
     this.hostedUiDomain = new cognito.UserPoolDomain(this, "UserPoolDomain", {
-        userPool: this.userPool,
-        cognitoDomain: {
-          domainPrefix: "my-app-hosted-ui-demo", // ← ユニークに
-        },
-      });
-  
-      // API Gateway Authorizer
-      this.authorizer = new apigateway.CognitoUserPoolsAuthorizer(this, "Authorizer", {
-        cognitoUserPools: [this.userPool],
-      });
+      userPool: this.userPool,
+      cognitoDomain: {
+        domainPrefix: "my-app-hosted-ui-demo",
+      },
+    });
 
-    
+    // API Gateway Authorizer の作成
+    this.authorizer = new apigateway.CognitoUserPoolsAuthorizer(
+      this,
+      "Authorizer",
+      {
+        cognitoUserPools: [this.userPool],
+        identitySource: "method.request.header.Authorization",
+      }
+    );
   }
 }

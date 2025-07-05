@@ -12,7 +12,7 @@ export const awsConfig: ResourcesConfig = {
           scopes: ["openid", "email", "profile"],
           redirectSignIn: ["https://main.d2l529um1j39do.amplifyapp.com"],
           redirectSignOut: ["https://www.yahoo.co.jp"],
-          responseType: "token", // implicit code grant用
+          responseType: "code", // Authorization Code Grant用に変更
         },
       },
     },

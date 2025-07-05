@@ -17,13 +17,21 @@ export class ApiGatewayConstruct extends Construct {
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    // API Gateway 作成
+    // API Gateway 作成（CORSはCDK自動生成に任せる）
     this.api = new apigateway.RestApi(this, "RestApi", {
       restApiName: props.apiName,
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: ["Content-Type"],
+        allowHeaders: [
+          "Content-Type",
+          "Authorization", // JWT認証に必要
+          "X-Amz-Date",
+          "X-Api-Key",
+          "X-Amz-Security-Token",
+          "X-Amz-User-Agent",
+        ],
+        allowCredentials: true, // 認証情報の送信を許可
       },
     });
 
@@ -63,40 +71,6 @@ export class ApiGatewayConstruct extends Construct {
       );
     }
 
-    // OPTIONS メソッドを明示的に追加（CORS対応）
-    resource.addMethod(
-      "OPTIONS",
-      new apigateway.MockIntegration({
-        integrationResponses: [
-          {
-            statusCode: "200",
-            responseParameters: {
-              "method.response.header.Access-Control-Allow-Headers": "'Content-Type'",
-              "method.response.header.Access-Control-Allow-Origin": "'*'",
-              "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
-            },
-            responseTemplates: {
-              "application/json": "",
-            },
-          },
-        ],
-        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
-        requestTemplates: {
-          "application/json": '{"statusCode": 200}',
-        },
-      }),
-      {
-        methodResponses: [
-          {
-            statusCode: "200",
-            responseParameters: {
-              "method.response.header.Access-Control-Allow-Headers": true,
-              "method.response.header.Access-Control-Allow-Origin": true,
-              "method.response.header.Access-Control-Allow-Methods": true,
-            },
-          },
-        ],
-      }
-    );
+    // ※ 手動で OPTIONS メソッドは追加しない（CDK が自動生成するため）
   }
 }
