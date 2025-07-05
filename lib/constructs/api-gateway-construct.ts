@@ -23,9 +23,17 @@ export class ApiGatewayConstruct extends Construct {
     this.api = new apigateway.RestApi(this, "RestApi", {
       restApiName: props.apiName,
       defaultCorsPreflightOptions: {
-        allowOrigins: [FRONTEND_ORIGIN], // ← ワイルドカード (*) ではなく固定
+        allowOrigins: [FRONTEND_ORIGIN],
         allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: ["Content-Type", "Authorization"], // ← Authorization を追加
+        allowHeaders: [
+          "Content-Type", 
+          "Authorization", 
+          "X-Amz-Date", 
+          "X-Api-Key", 
+          "X-Amz-Security-Token",
+          "X-Amz-User-Agent"
+        ],
+        allowCredentials: true, // 認証情報の送信を許可
       },
     });
 
@@ -35,8 +43,9 @@ export class ApiGatewayConstruct extends Construct {
       type: apigateway.ResponseType.DEFAULT_4XX,
       responseHeaders: {
         "Access-Control-Allow-Origin": `'${FRONTEND_ORIGIN}'`,
-        "Access-Control-Allow-Headers": "'Content-Type,Authorization'",
+        "Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
         "Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
+        "Access-Control-Allow-Credentials": "'true'",
       },
     });
 
@@ -45,8 +54,9 @@ export class ApiGatewayConstruct extends Construct {
       type: apigateway.ResponseType.DEFAULT_5XX,
       responseHeaders: {
         "Access-Control-Allow-Origin": `'${FRONTEND_ORIGIN}'`,
-        "Access-Control-Allow-Headers": "'Content-Type,Authorization'",
+        "Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
         "Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
+        "Access-Control-Allow-Credentials": "'true'",
       },
     });
 
@@ -82,7 +92,5 @@ export class ApiGatewayConstruct extends Construct {
         methodOptions
       );
     }
-
-    // OPTIONS メソッドは defaultCorsPreflightOptions によって自動生成されるため追加不要
   }
 }
