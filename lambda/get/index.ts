@@ -10,32 +10,32 @@ const client = new DynamoDBClient({ region: "ap-northeast-1" });
 
 export const handler = async (event: APIGatewayProxyEvent) => {
   const userId = event.pathParameters?.userId;
-console.log("userId", userId);
+  console.log("userId", userId);
 
   try {
-   if (userId) {
-  const result = await client.send(
-    new GetItemCommand({
-      TableName: "knowledge",
-      Key: {
-        userId: { S: userId },
-      },
-    })
-  );
+    if (userId) {
+      const result = await client.send(
+        new GetItemCommand({
+          TableName: "knowledge",
+          Key: {
+            userId: { S: userId },
+          },
+        })
+      );
 
-  if (!result.Item) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ message: "Item not found" }),
-    };
-  }
+      if (!result.Item) {
+        return {
+          statusCode: 404,
+          body: JSON.stringify({ message: "Item not found" }),
+        };
+      }
 
-  const data = unmarshall(result.Item);
+      const data = unmarshall(result.Item);
 
-  // 🔧 tagsがSetなら配列に変換
-  if (data.tags instanceof Set) {
-    data.tags = Array.from(data.tags);
-  }
+      // 🔧 tagsがSetなら配列に変換
+      if (data.tags instanceof Set) {
+        data.tags = Array.from(data.tags);
+      }
       return {
         statusCode: 200,
         headers: {
@@ -71,6 +71,15 @@ console.log("userId", userId);
     console.error("Error in Lambda:", error);
     return {
       statusCode: 500,
+      headers: {
+        // "Content-Type": "application/json",
+        // "Access-Control-Allow-Origin": "*", // ← これを追加！
+        // "Access-Control-Allow-Headers": "Content-Type", // ← 必要ならこれも
+        "Access-Control-Allow-Origin":
+          "https://main.d2l529um1j39do.amplifyapp.com",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+      },
       body: JSON.stringify({ message: "Internal Server Error", error }),
     };
   }

@@ -1,11 +1,10 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { DynamoConstruct } from "../constructs/dynamo-construct";
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { LambdaConstruct } from "../constructs/lambda-construct";
 import { ApiGatewayConstruct } from "../constructs/api-gateway-construct";
-// import { CognitoConstruct } from '../constructs/cognito-Construct';
+import { CognitoConstruct } from "../constructs/cognito-Construct";
 export class Cdk2025ProjectStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -18,13 +17,8 @@ export class Cdk2025ProjectStack extends cdk.Stack {
         partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
       }
     );
-    // const lambda = new LambdaConstruct(this, "Lambda", {
-    //   functionName: "TestFunc",
-    //   handler: "index.handler",
-    //   entry: "../../lambda/index.ts",
-    // });
 
-    // const cognito = new CognitoConstruct(this,"Cognito")
+    const cognito = new CognitoConstruct(this, "Cognito");
     const getLambda = new LambdaConstruct(this, "GetLambda", {
       functionName: "GetKnowledge",
       handler: "index.handler",
@@ -36,7 +30,7 @@ export class Cdk2025ProjectStack extends cdk.Stack {
       handler: "index.handler",
       entry: "../../lambda/post/index.ts",
     });
-    
+
     knowledgeTableConstruct.table.grantReadData(getLambda.lambdaFn);
     knowledgeTableConstruct.table.grantWriteData(postLambda.lambdaFn);
 
@@ -47,6 +41,7 @@ export class Cdk2025ProjectStack extends cdk.Stack {
         GET: getLambda.lambdaFn,
         POST: postLambda.lambdaFn,
       },
+       authorizer: cognito.authorizer,  
     });
   }
 }

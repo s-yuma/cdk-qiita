@@ -5,7 +5,7 @@ const client = new DynamoDBClient({});
 export const handler = async (event: any) => {
   const body = JSON.parse(event.body);
 
-  const { userId, title, description,content, author, date, tags } = body;
+  const { userId, title, description, content, author, date, tags } = body;
 
   try {
     const command = new PutItemCommand({
@@ -37,9 +37,13 @@ export const handler = async (event: any) => {
     return {
       statusCode: 500,
       headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*", // ← これを追加！
-        "Access-Control-Allow-Headers": "Content-Type", // ← 必要ならこれも
+        // "Content-Type": "application/json",
+        // "Access-Control-Allow-Origin": "*", // ← これを追加！
+        // "Access-Control-Allow-Headers": "Content-Type", // ← 必要ならこれも
+        "Access-Control-Allow-Origin":
+          "https://main.d2l529um1j39do.amplifyapp.com",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
       },
       body: JSON.stringify({ error: "データの追加に失敗しました" }),
     };
