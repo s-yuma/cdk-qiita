@@ -4,6 +4,8 @@ import { fetchAuthSession } from "aws-amplify/auth"; // Amplify v6+
 
 const fetcher = async (url: string) => {
   const { tokens } = await fetchAuthSession();
+  console.log(tokens);
+  
   const idToken = tokens?.idToken?.toString(); // ← Cognito ID トークン
   return axios
     .get(url, {
