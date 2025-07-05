@@ -170,28 +170,28 @@ export default function KnowledgeDetailPage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
 
- useEffect(() => {
-  const fetchData = async () => {
-    const userId = params.userId;
-    console.log(userId);
+  useEffect(() => {
+    const fetchData = async () => {
+      const userId = params.userId;
+      console.log(userId);
 
-    try {
-      const response = await axios.get(
-        `https://m6ld96ezo0.execute-api.ap-northeast-1.amazonaws.com/prod/test/${userId}`
-      );
-      console.log("data", response.data);
+      try {
+        const response = await axios.get(
+          `https://jwm993ajle.execute-api.ap-northeast-1.amazonaws.com/prod/test/${userId}`
+        );
+        console.log("data", response.data);
 
-      // 🔁 ダミーから実データへ
-      setKnowledge(response.data);
-    } catch (error) {
-      console.error("Error fetching knowledge:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        // 🔁 ダミーから実データへ
+        setKnowledge(response.data);
+      } catch (error) {
+        console.error("Error fetching knowledge:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchData();
-}, [params.userId]);
+    fetchData();
+  }, [params.userId]);
 
   const handleBackToList = () => {
     router.push("/");

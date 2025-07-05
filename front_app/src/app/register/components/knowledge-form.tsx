@@ -60,7 +60,7 @@ export default function KnowledgeForm() {
     setIsSubmitting(true);
 
     await axios.post(
-      "https://m6ld96ezo0.execute-api.ap-northeast-1.amazonaws.com/prod/test",
+      "https://jwm993ajle.execute-api.ap-northeast-1.amazonaws.com/prod/test",
       {
         userId: uuidv4(),
         title: title,
@@ -115,10 +115,27 @@ export default function KnowledgeForm() {
       />
 
       <form onSubmit={handleSubmit}>
-        <CardContent sx={{ pt: 3, pb: 3, display: "flex", flexDirection: "column", gap: 3 }}>
+        <CardContent
+          sx={{
+            pt: 3,
+            pb: 3,
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+          }}
+        >
           {/* タイトル */}
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                mb: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                color: "white",
+              }}
+            >
               <BookIcon fontSize="small" />
               タイトル
             </Typography>
@@ -149,7 +166,16 @@ export default function KnowledgeForm() {
 
           {/* 説明 */}
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                mb: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                color: "white",
+              }}
+            >
               <BookIcon fontSize="small" />
               説明
             </Typography>
@@ -182,7 +208,16 @@ export default function KnowledgeForm() {
 
           {/* コンテンツ（★ 追加部分） */}
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                mb: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                color: "white",
+              }}
+            >
               <BookIcon fontSize="small" />
               コンテンツ
             </Typography>
@@ -215,7 +250,16 @@ export default function KnowledgeForm() {
 
           {/* タグ */}
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                mb: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                color: "white",
+              }}
+            >
               <TagIcon fontSize="small" />
               タグ
             </Typography>
@@ -271,7 +315,16 @@ export default function KnowledgeForm() {
 
           {/* 作成者 */}
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1, color: "white" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                mb: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                color: "white",
+              }}
+            >
               <PersonIcon fontSize="small" />
               作成者
             </Typography>
