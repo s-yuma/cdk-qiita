@@ -68,7 +68,7 @@ export default function KnowledgeForm() {
       content,
     };
     await axios.post(
-      "https://55nzl3ichc.execute-api.ap-northeast-1.amazonaws.com/prod//test",
+      "https://55nzl3ichc.execute-api.ap-northeast-1.amazonaws.com/prod/test",
       body
     );
 

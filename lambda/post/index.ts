@@ -3,11 +3,10 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
 const client = new DynamoDBClient({});
 
-const ALLOWED_ORIGIN = "https://dt8gbon99bxbs.cloudfront.net";
 
 // CORSヘッダーを共通化
 const getCorsHeaders = () => ({
-  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Amz-Date, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent",
   "Access-Control-Allow-Credentials": "true",
