@@ -33,7 +33,16 @@ export default function KnowledgeForm() {
   const [tags, setTags] = useState<string[]>([]);
   const [author, setAuthor] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const ID_TOKEN =
+    `eyJraWQiOiJTSDZTVVg0QVZjblFLREJHUWlMak1JdFR3c2V6NHhKZ0dkems4K2h4Z3JFPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJiN2I0OGFlOC03MGQxLTcwZjMtNjIzYi1hN
+WZkODkxODRmMjkiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuYXAtbm9ydGhlYXN0LTEuYW1hem9uYXdzLmNvbVwvYXAtbm9ydGhlYXN0LTFfek1wRzdoSzVXIiwiY29nbml0bzp1c2VybmFtZSI6Im
+I3YjQ4YWU4LTcwZDEtNzBmMy02MjNiLWE1ZmQ4OTE4NGYyOSIsIm9yaWdpbl9qdGkiOiI2YzYxZDQxYy05N2ZhLTRlZDAtOWFjMi04ZTViODNkNjMzMTUiLCJhdWQiOiI0cXFrYWcyNHY1MWUzbGxrMjByNTU
+3MmVtZiIsImV2ZW50X2lkIjoiMDJmNGRlZjYtNWI1ZS00OGRkLTk3MzktMDZiMzRmMzYxMWViIiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE3NTE3NDAzMDUsImV4cCI6MTc1MTgyNjcwNSwiaWF0
+IjoxNzUxNzQwMzA1LCJqdGkiOiJhMmQ5YTY0NC0wNTA4LTQ0MGMtODUzZC00NDBiZjYyY2JlMTIiLCJlbWFpbCI6InNhbmdvY2hhbjU2NTZAZ21haWwuY29tIn0.D3wfsylJ-oOqu-UB_GbUnxZMN4Wh-mgcw
+cflE0RFd0nru9vxERvlpAf240qzr4rKGSSym4E5p3rhviPfZJNReoonHXChju2Fq9hvDFo07xiXRSZPXg0_oQH2089KoQc4wq7C2O1WggR7p2RRk69MqrXeA31srQxihDc9O06am2O7PD38YueuNHMLvqy-Ba
+MMO5tLsBNw0IHOmOC6_Wbjd5eoftaBt7rqZ6yqPgASaf3DTUsFdPI3vpXIMvi7ynYCY2U8kepvr6OHq3Fx_2T1WiLTA-CpEgSwKa3ZUn4hikc4hVefISabDKEZUzwN85kzVbk0oi9P4-zULudck0MK2w`
+      .trim()
+      .replace(/\s+/g, "");
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
       e.preventDefault();
@@ -58,17 +67,23 @@ export default function KnowledgeForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+    const body = {
+      userId: uuidv4(),
+      title,
+      description,
+      author,
+      date: "2025-02-18",
+      tags,
+      content,
+    };
     await axios.post(
-      "https://jwm993ajle.execute-api.ap-northeast-1.amazonaws.com/prod/test",
+      "https://jwm993ajle.execute-api.ap-northeast-1.amazonaws.com/prod//test",
+      body,
       {
-        userId: uuidv4(),
-        title: title,
-        description: description,
-        author: author,
-        date: "2025-02-18",
-        tags: tags,
-        content: content,
+        headers: {
+          Authorization: `Bearer ${ID_TOKEN}`, // API Gateway＋Cognito 認証なら Bearer 付きが一般的
+          // "Content-Type": "application/json",   // axios はデフォルトで付けるので任意
+        },
       }
     );
 

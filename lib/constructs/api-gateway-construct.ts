@@ -17,22 +17,11 @@ export class ApiGatewayConstruct extends Construct {
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    // API Gateway 作成（CORSはCDK自動生成に任せる）
+    // API Gateway 作成（CORSを明示的に無効化してLambda側で処理）
     this.api = new apigateway.RestApi(this, "RestApi", {
       restApiName: props.apiName,
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: [
-          "Content-Type",
-          "Authorization", // JWT認証に必要
-          "X-Amz-Date",
-          "X-Api-Key",
-          "X-Amz-Security-Token",
-          "X-Amz-User-Agent",
-        ],
-        allowCredentials: true, // 認証情報の送信を許可
-      },
+      // CORSをfalseにしてLambda側で完全に制御
+      defaultCorsPreflightOptions: undefined,
     });
 
     // Cognito Authorizer に RestApi をバインド（手動で）
@@ -53,13 +42,27 @@ export class ApiGatewayConstruct extends Construct {
         }
       : undefined;
 
+    // OPTIONSメソッドは認証なしで設定
+    const optionsMethodOptions: apigateway.MethodOptions = {
+      authorizationType: apigateway.AuthorizationType.NONE,
+    };
+
     // 各HTTPメソッドに Lambda をマッピング
     for (const method in props.methodToLambdaMap) {
-      resource.addMethod(
-        method,
-        new apigateway.LambdaIntegration(props.methodToLambdaMap[method]),
-        methodOptions
-      );
+      if (method === "OPTIONS") {
+        // OPTIONSメソッドは認証なしで設定
+        resource.addMethod(
+          method,
+          new apigateway.LambdaIntegration(props.methodToLambdaMap[method]),
+          optionsMethodOptions
+        );
+      } else {
+        resource.addMethod(
+          method,
+          new apigateway.LambdaIntegration(props.methodToLambdaMap[method]),
+          methodOptions
+        );
+      }
     }
 
     // GETメソッドを /test/{userId} にも設定
@@ -71,6 +74,15 @@ export class ApiGatewayConstruct extends Construct {
       );
     }
 
-    // ※ 手動で OPTIONS メソッドは追加しない（CDK が自動生成するため）
+    // OPTIONSメソッドを /test/{userId} にも設定（認証なし）
+    if (props.methodToLambdaMap["OPTIONS"] || props.methodToLambdaMap["GET"]) {
+      resourceWithId.addMethod(
+        "OPTIONS",
+        new apigateway.LambdaIntegration(
+          props.methodToLambdaMap["OPTIONS"] || props.methodToLambdaMap["GET"]
+        ),
+        optionsMethodOptions
+      );
+    }
   }
 }

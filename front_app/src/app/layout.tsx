@@ -3,10 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { ThemeProvider } from "./theme-provider";
+import {awsconfig} from "../aws-exports"; // または './amplifyconfiguration.json'
 import { Amplify } from "aws-amplify";
-import { awsConfig } from "../aws-exports";
-
-Amplify.configure(awsConfig);
+Amplify.configure(awsconfig);
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

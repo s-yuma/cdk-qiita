@@ -8,7 +8,28 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 
 const client = new DynamoDBClient({ region: "ap-northeast-1" });
 
+// CORSヘッダーを共通化
+const getCorsHeaders = () => ({
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, X-Amz-Date, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent",
+  "Access-Control-Allow-Credentials": "true",
+  "Content-Type": "application/json",
+});
+
 export const handler = async (event: APIGatewayProxyEvent) => {
+  console.log("Event:", JSON.stringify(event, null, 2));
+
+  // OPTIONSリクエストの処理（プリフライトリクエスト）
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: getCorsHeaders(),
+      body: "",
+    };
+  }
+
   const userId = event.pathParameters?.userId;
   console.log("userId", userId);
 
@@ -26,25 +47,22 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       if (!result.Item) {
         return {
           statusCode: 404,
+          headers: getCorsHeaders(),
           body: JSON.stringify({ message: "Item not found" }),
         };
       }
 
       const data = unmarshall(result.Item);
 
-      // 🔧 tagsがSetなら配列に変換
       if (data.tags instanceof Set) {
         data.tags = Array.from(data.tags);
       }
       return {
         statusCode: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: getCorsHeaders(),
         body: JSON.stringify(data),
       };
     } else {
-      // 🔁 全件取得
       const result = await client.send(
         new ScanCommand({
           TableName: "knowledge",
@@ -61,26 +79,19 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
       return {
         statusCode: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
-        body: JSON.stringify(items),
+        headers: getCorsHeaders(),
+        body: JSON.stringify(items || []),
       };
     }
   } catch (error) {
     console.error("Error in Lambda:", error);
     return {
       statusCode: 500,
-      headers: {
-        // "Content-Type": "application/json",
-        // "Access-Control-Allow-Origin": "*", // ← これを追加！
-        // "Access-Control-Allow-Headers": "Content-Type", // ← 必要ならこれも
-        "Access-Control-Allow-Origin":
-          "https://main.d2l529um1j39do.amplifyapp.com",
-        "Access-Control-Allow-Headers": "Content-Type,Authorization",
-        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-      },
-      body: JSON.stringify({ message: "Internal Server Error", error }),
+      headers: getCorsHeaders(),
+      body: JSON.stringify({
+        message: "Internal Server Error",
+        error: error instanceof Error ? error.message : String(error),
+      }),
     };
   }
 };

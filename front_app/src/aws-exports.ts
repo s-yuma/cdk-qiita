@@ -1,7 +1,7 @@
 // src/aws-exports.ts
 import type { ResourcesConfig } from 'aws-amplify';
 
-export const awsConfig: ResourcesConfig = {
+export const awsconfig: ResourcesConfig = {
   Auth: {
     Cognito: {
       userPoolId: "ap-northeast-1_zMpG7hK5W",
