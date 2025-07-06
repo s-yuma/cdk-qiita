@@ -19,7 +19,7 @@ export interface KnowledgeItem {
 
 export const useKnowledgeData = () => {
   const { data, error, isLoading } = useSWR<KnowledgeItem[]>(
-    "https://55nzl3ichc.execute-api.ap-northeast-1.amazonaws.com/prod//test",
+    "https://55nzl3ichc.execute-api.ap-northeast-1.amazonaws.com/prod/test",
     fetcher
   );
 
