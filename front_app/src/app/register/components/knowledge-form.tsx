@@ -77,7 +77,7 @@ MMO5tLsBNw0IHOmOC6_Wbjd5eoftaBt7rqZ6yqPgASaf3DTUsFdPI3vpXIMvi7ynYCY2U8kepvr6OHq3
       content,
     };
     await axios.post(
-      "https://jwm993ajle.execute-api.ap-northeast-1.amazonaws.com/prod//test",
+      "https://55nzl3ichc.execute-api.ap-northeast-1.amazonaws.com/prod//test",
       body,
       {
         headers: {
