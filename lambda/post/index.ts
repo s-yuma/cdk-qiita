@@ -1,52 +1,13 @@
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
 const client = new DynamoDBClient({});
 
+export const handler = async (event: any) => {
+  const body = JSON.parse(event.body);
 
-// CORSヘッダーを共通化
-const getCorsHeaders = () => ({
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Amz-Date, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent",
-  "Access-Control-Allow-Credentials": "true",
-  "Content-Type": "application/json",
-});
-
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  console.log("Event:", JSON.stringify(event, null, 2));
-  
-  // OPTIONSリクエストの処理（プリフライトリクエスト）
-  if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: getCorsHeaders(),
-      body: "",
-    };
-  }
+  const { userId, title, description, content, author, date, tags } = body;
 
   try {
-    // リクエストボディの解析
-    if (!event.body) {
-      return {
-        statusCode: 400,
-        headers: getCorsHeaders(),
-        body: JSON.stringify({ error: "リクエストボディが必要です" }),
-      };
-    }
-
-    const body = JSON.parse(event.body);
-    const { userId, title, description, content, author, date, tags } = body;
-
-    // 必須フィールドの検証
-    if (!userId || !title || !description || !content || !author || !date || !tags) {
-      return {
-        statusCode: 400,
-        headers: getCorsHeaders(),
-        body: JSON.stringify({ error: "必須フィールドが不足しています" }),
-      };
-    }
-
     const command = new PutItemCommand({
       TableName: "knowledge",
       Item: {
@@ -56,7 +17,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         content: { S: content },
         author: { S: author },
         date: { S: date },
-        tags: { SS: Array.isArray(tags) ? tags : [tags] }, // 配列でない場合の対応
+        tags: { SS: tags },
       },
     });
 
@@ -64,18 +25,23 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     return {
       statusCode: 200,
-      headers: getCorsHeaders(),
-      body: JSON.stringify({ message: "データを追加しました" }),
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*", // ← これを追加！
+        "Access-Control-Allow-Headers": "Content-Type", // ← 必要ならこれも
+      },
+      body: JSON.stringify({ message: "データを追加" }),
     };
   } catch (error) {
-    console.error("Error in Lambda:", error);
+    console.log(error);
     return {
       statusCode: 500,
-      headers: getCorsHeaders(),
-      body: JSON.stringify({ 
-        error: "データの追加に失敗しました",
-        details: error instanceof Error ? error.message : String(error)
-      }),
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*", // ← これを追加！
+        "Access-Control-Allow-Headers": "Content-Type", // ← 必要ならこれも
+      },
+      body: JSON.stringify({ error: "データの追加に失敗しました" }),
     };
   }
 };
