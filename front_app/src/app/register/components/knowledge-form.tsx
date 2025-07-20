@@ -33,6 +33,7 @@ export default function KnowledgeForm() {
   const [tags, setTags] = useState<string[]>([]);
   const [author, setAuthor] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
@@ -56,18 +57,27 @@ export default function KnowledgeForm() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    const body = {
-      userId: uuidv4(),
-      title,
-      description,
-      author,
-      date: "2025-02-18",
-      tags,
-      content,
-    };
-    await axios.post(process.env.NEXT_PUBLIC_URL as string, body);
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  const idToken = typeof window !== "undefined" ? localStorage.getItem("id_token") : null;
+
+  const body = {
+    userId: uuidv4(),
+    title,
+    description,
+    author,
+    date: "2025-02-18",
+    tags,
+    content,
+  };
+
+  try {
+    await axios.post(process.env.NEXT_PUBLIC_URL as string, body, {
+      headers: {
+        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+      },
+    });
 
     setTimeout(() => {
       setIsSubmitting(false);
@@ -76,10 +86,16 @@ export default function KnowledgeForm() {
       setTags([]);
       setTagInput("");
       setAuthor("");
-      setContent(""); // ★ content リセット
+      setContent("");
       alert("ナレッジが正常に共有されました！");
     }, 1000);
-  };
+  } catch (error) {
+    setIsSubmitting(false);
+    alert("送信に失敗しました。もう一度お試しください。");
+    console.error(error);
+  }
+};
+
 
   return (
     <Card

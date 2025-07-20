@@ -38,87 +38,6 @@ interface KnowledgeItem {
   content: string;
 }
 
-// サンプルデータ（短縮版）
-// const knowledgeData: KnowledgeItem[] = [
-//   {
-//     userId: "1",
-//     title: "Next.jsアプリケーションのデプロイ方法",
-//     description:
-//       "Vercelを使用したNext.jsアプリケーションのデプロイ手順について解説します。",
-//     author: "田中太郎",
-//     date: "2023-04-15",
-//     tags: ["Next.js", "Vercel", "デプロイ"],
-//     content: `
-// # Next.jsアプリケーションのデプロイ方法
-
-// Next.jsで開発したアプリケーションをVercelにデプロイする方法を解説します。Vercelは、Next.jsの開発元が提供するホスティングサービスで、Next.jsアプリケーションのデプロイに最適化されています。
-
-// ## 準備
-
-// デプロイを始める前に、以下のものが必要です：
-
-// 1. GitHubアカウント（またはGitLab、BitBucket）
-// 2. Vercelアカウント
-// 3. デプロイ準備の整ったNext.jsプロジェクト
-
-// ## デプロイ手順
-
-// ### 1. Vercelアカウントの作成
-
-// まだVercelアカウントをお持ちでない場合は、Vercel公式サイトにアクセスして、アカウントを作成します。GitHubアカウントでのサインアップが最も簡単です。
-
-// ### 2. プロジェクトのインポート
-
-// 1. Vercelダッシュボードにログインします。
-// 2. 「New Project」ボタンをクリックします。
-// 3. GitHubリポジトリを連携し、デプロイしたいリポジトリを選択します。
-// 4. 必要に応じて環境変数を設定します。
-// 5. 「Deploy」ボタンをクリックしてデプロイを開始します。
-//     `,
-//   },
-//   {
-//     userId: "2",
-//     title: "TypeScriptの基本的な型定義",
-//     description:
-//       "TypeScriptで使用される基本的な型定義とその使い方について説明します。",
-//     author: "鈴木花子",
-//     date: "2023-04-10",
-//     tags: ["TypeScript", "プログラミング", "型定義"],
-//     content: `
-// # TypeScriptの基本的な型定義
-
-// TypeScriptは、JavaScriptに静的型付けを追加した言語です。型定義を使用することで、コードの品質向上、バグの早期発見、IDEのサポート強化などのメリットがあります。
-
-// ## プリミティブ型
-
-// TypeScriptには、以下のようなプリミティブ型があります：
-
-// \`\`\`typescript
-// // 文字列
-// let name: string = "John";
-
-// // 数値
-// let age: number = 30;
-
-// // 真偽値
-// let isActive: boolean = true;
-// \`\`\`
-
-// ## 配列
-
-// 配列の型定義は以下のように行います：
-
-// \`\`\`typescript
-// // 文字列の配列
-// let names: string[] = ["John", "Jane", "Bob"];
-
-// // 別の書き方
-// let numbers: Array<number> = [1, 2, 3];
-// \`\`\`
-//     `,
-//   },
-// ];
-
 // MUIのカスタムテーマを作成
 const theme = createTheme({
   palette: {
@@ -176,7 +95,19 @@ export default function KnowledgeDetailPage() {
       console.log(userId);
 
       try {
-        const response = await axios.get(process.env.NEXT_PUBLIC_URL as string);
+        const idToken =
+          typeof window !== "undefined"
+            ? localStorage.getItem("id_token")
+            : null;
+
+        const response = await axios.get(
+          process.env.NEXT_PUBLIC_URL as string,
+          {
+            headers: {
+              ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+            },
+          }
+        );
         console.log("data", response.data);
 
         // 🔁 ダミーから実データへ
