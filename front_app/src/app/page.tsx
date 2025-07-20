@@ -78,6 +78,8 @@ export default function KnowledgeListPage() {
     const fetchToken = async () => {
       const url = new URL(window.location.href);
       const code = url.searchParams.get("code");
+      console.log("code",code);
+      
       if (!code) return;
 
       // トークン取得
