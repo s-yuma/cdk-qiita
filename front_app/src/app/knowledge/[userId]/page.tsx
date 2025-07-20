@@ -111,7 +111,7 @@ export default function KnowledgeDetailPage() {
         console.log("data", response.data);
 
         // 🔁 ダミーから実データへ
-        setKnowledge(response.data);
+        setKnowledge(response.data[0]);
       } catch (error) {
         console.error("Error fetching knowledge:", error);
       } finally {
@@ -385,7 +385,7 @@ export default function KnowledgeDetailPage() {
               </Typography>
 
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
-                {knowledge.tags.map((tag: string, index: number) => (
+                {knowledge.tags?.map((tag: string, index: number) => (
                   <Chip
                     key={index}
                     label={tag}
