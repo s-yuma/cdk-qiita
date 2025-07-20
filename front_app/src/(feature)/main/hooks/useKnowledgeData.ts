@@ -1,23 +1,18 @@
-// hooks/useKnowledgeData.ts
-import { fetchAuthSession } from "aws-amplify/auth";
 import useSWR from "swr";
 import axios from "axios";
 
-async function getIdToken() {
-  const session = await fetchAuthSession();
-  return session.tokens?.idToken?.toString(); // これが必要なIDトークン
-}
-
-const fetcher = async (url: string) => {
-  const idToken = await getIdToken(); // この中で取得する
-  console.log("idToken", idToken);
+const fetcher = (url: string) => {
+  const idToken = typeof window !== "undefined" ? localStorage.getItem("id_token") : null;
 
   return axios
     .get(url, {
-      headers: { Authorization: idToken },
+      headers: {
+        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+      },
     })
     .then((res) => res.data);
 };
+
 export interface KnowledgeItem {
   userId: string;
   title: string;
