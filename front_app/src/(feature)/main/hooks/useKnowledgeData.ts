@@ -8,16 +8,16 @@ async function getIdToken() {
   return session.tokens?.idToken?.toString(); // これが必要なIDトークン
 }
 
-const idToken = await getIdToken();
-console.log("idToken",idToken);
+const fetcher = async (url: string) => {
+  const idToken = await getIdToken(); // この中で取得する
+  console.log("idToken", idToken);
 
-const fetcher = (url: string) =>
-  axios
+  return axios
     .get(url, {
       headers: { Authorization: idToken },
     })
     .then((res) => res.data);
-
+};
 export interface KnowledgeItem {
   userId: string;
   title: string;
