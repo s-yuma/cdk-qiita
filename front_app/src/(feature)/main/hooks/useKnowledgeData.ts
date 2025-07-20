@@ -9,6 +9,8 @@ async function getIdToken() {
 }
 
 const idToken = await getIdToken();
+console.log("idToken",idToken);
+
 const fetcher = (url: string) =>
   axios
     .get(url, {
