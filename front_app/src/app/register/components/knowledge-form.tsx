@@ -16,6 +16,7 @@ import {
   alpha,
 } from "@mui/material";
 import {
+  ArrowBack as ArrowBackIcon,
   Book as BookIcon,
   Tag as TagIcon,
   Person as PersonIcon,
@@ -24,6 +25,7 @@ import {
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function KnowledgeForm() {
   const [title, setTitle] = useState("");
@@ -33,7 +35,7 @@ export default function KnowledgeForm() {
   const [tags, setTags] = useState<string[]>([]);
   const [author, setAuthor] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const router = useRouter();
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
@@ -56,46 +58,50 @@ export default function KnowledgeForm() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-
-  const idToken = typeof window !== "undefined" ? localStorage.getItem("id_token") : null;
-
-  const body = {
-    userId: uuidv4(),
-    title,
-    description,
-    author,
-    date: "2025-02-18",
-    tags,
-    content,
+  const handleBackToList = () => {
+    router.push("/");
   };
 
-  try {
-    await axios.post(process.env.NEXT_PUBLIC_URL as string, body, {
-      headers: {
-        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
-      },
-    });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    setTimeout(() => {
+    const idToken =
+      typeof window !== "undefined" ? localStorage.getItem("id_token") : null;
+
+    const body = {
+      userId: uuidv4(),
+      title,
+      description,
+      author,
+      date: "2025-02-18",
+      tags,
+      content,
+    };
+
+    try {
+      await axios.post(process.env.NEXT_PUBLIC_URL as string, body, {
+        headers: {
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+        },
+      });
+
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setTitle("");
+        setDescription("");
+        setTags([]);
+        setTagInput("");
+        setAuthor("");
+        setContent("");
+        alert("ナレッジが正常に共有されました！");
+      }, 1000);
+    } catch (error) {
       setIsSubmitting(false);
-      setTitle("");
-      setDescription("");
-      setTags([]);
-      setTagInput("");
-      setAuthor("");
-      setContent("");
-      alert("ナレッジが正常に共有されました！");
-    }, 1000);
-  } catch (error) {
-    setIsSubmitting(false);
-    alert("送信に失敗しました。もう一度お試しください。");
-    console.error(error);
-  }
-};
-
+      alert("送信に失敗しました。もう一度お試しください。");
+      console.error(error);
+    }
+  };
 
   return (
     <Card
@@ -389,6 +395,23 @@ export default function KnowledgeForm() {
             }}
           >
             クリア
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<ArrowBackIcon />}
+            onClick={handleBackToList}
+            sx={{
+              background: "linear-gradient(90deg, #9c27b0 0%, #3f51b5 100%)",
+              color: "white",
+              px: 4,
+              py: 1,
+              "&:hover": {
+                background: "linear-gradient(90deg, #7b1fa2 0%, #303f9f 100%)",
+                boxShadow: "0 4px 10px rgba(156, 39, 176, 0.3)",
+              },
+            }}
+          >
+            一覧に戻る
           </Button>
           <Button
             type="submit"
