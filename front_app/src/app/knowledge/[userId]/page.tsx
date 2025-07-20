@@ -176,9 +176,7 @@ export default function KnowledgeDetailPage() {
       console.log(userId);
 
       try {
-        const response = await axios.get(
-          `https://55nzl3ichc.execute-api.ap-northeast-1.amazonaws.com/prod/test/${userId}`
-        );
+        const response = await axios.get(process.env.NEXT_PUBLIC_URL as string);
         console.log("data", response.data);
 
         // 🔁 ダミーから実データへ

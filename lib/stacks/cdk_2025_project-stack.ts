@@ -4,7 +4,7 @@ import { DynamoConstruct } from "../constructs/dynamo-construct";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { LambdaConstruct } from "../constructs/lambda-construct";
 import { ApiGatewayConstruct } from "../constructs/api-gateway-construct";
-// import { CognitoConstruct } from "../constructs/cognito-Construct";
+import { CognitoConstruct } from "../constructs/cognito-Construct";
 export class Cdk2025ProjectStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -18,7 +18,7 @@ export class Cdk2025ProjectStack extends cdk.Stack {
       }
     );
 
-    // const cognito = new CognitoConstruct(this, "Cognito");
+    const cognito = new CognitoConstruct(this, "Cognito");
     const getLambda = new LambdaConstruct(this, "GetLambda", {
       functionName: "GetKnowledge",
       handler: "index.handler",
@@ -41,7 +41,7 @@ export class Cdk2025ProjectStack extends cdk.Stack {
         GET: getLambda.lambdaFn,
         POST: postLambda.lambdaFn,
       },
-      //  authorizer: cognito.authorizer,  
+       authorizer: cognito.authorizer,  
     });
   }
 }

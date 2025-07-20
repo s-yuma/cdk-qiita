@@ -67,10 +67,7 @@ export default function KnowledgeForm() {
       tags,
       content,
     };
-    await axios.post(
-      "https://55nzl3ichc.execute-api.ap-northeast-1.amazonaws.com/prod/test",
-      body
-    );
+    await axios.post(process.env.NEXT_PUBLIC_URL as string, body);
 
     setTimeout(() => {
       setIsSubmitting(false);

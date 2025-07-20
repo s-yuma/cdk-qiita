@@ -17,24 +17,63 @@ export class ApiGatewayConstruct extends Construct {
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    // API Gateway 作成（CORSを明示的に無効化してLambda側で処理）
+    const FRONTEND_ORIGIN = "https://main.dt7vykrqikg9n.amplifyapp.com";
+
+    // REST API 本体
     this.api = new apigateway.RestApi(this, "RestApi", {
       restApiName: props.apiName,
-      // CORSをfalseにしてLambda側で完全に制御
-      defaultCorsPreflightOptions: undefined,
+      defaultCorsPreflightOptions: {
+        allowOrigins: [FRONTEND_ORIGIN],
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: [
+          "Content-Type",
+          "Authorization",
+          "X-Amz-Date",
+          "X-Api-Key",
+          "X-Amz-Security-Token",
+          "X-Amz-User-Agent",
+        ],
+        allowCredentials: true, // 認証情報の送信を許可
+      },
     });
 
-    // Cognito Authorizer に RestApi をバインド（手動で）
+    // API Gateway の GatewayResponse (4xx/5xx) にも CORS を追加
+    new apigateway.GatewayResponse(this, "Default4xxGatewayResponse", {
+      restApi: this.api,
+      type: apigateway.ResponseType.DEFAULT_4XX,
+      responseHeaders: {
+        "Access-Control-Allow-Origin": `'${FRONTEND_ORIGIN}'`,
+        "Access-Control-Allow-Headers":
+          "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
+        "Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
+        "Access-Control-Allow-Credentials": "'true'",
+      },
+    });
+
+    new apigateway.GatewayResponse(this, "Default5xxGatewayResponse", {
+      restApi: this.api,
+      type: apigateway.ResponseType.DEFAULT_5XX,
+      responseHeaders: {
+        "Access-Control-Allow-Origin": `'${FRONTEND_ORIGIN}'`,
+        "Access-Control-Allow-Headers":
+          "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
+        "Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
+        "Access-Control-Allow-Credentials": "'true'",
+      },
+    });
+
+    // Cognito Authorizer をこの RestApi にバインド
     if (props.authorizer && "restApi" in props.authorizer) {
       // @ts-ignore
       props.authorizer.restApi = this.api;
     }
 
-    // /test エンドポイント作成
+    // /<route>
     const resource = this.api.root.addResource(props.route);
+    // /<route>/{userId}
     const resourceWithId = resource.addResource("{userId}");
 
-    // 認証オプション設定（あれば）
+    // 認可設定
     const methodOptions: apigateway.MethodOptions | undefined = props.authorizer
       ? {
           authorizer: props.authorizer,
@@ -42,46 +81,21 @@ export class ApiGatewayConstruct extends Construct {
         }
       : undefined;
 
-    // OPTIONSメソッドは認証なしで設定
-    const optionsMethodOptions: apigateway.MethodOptions = {
-      authorizationType: apigateway.AuthorizationType.NONE,
-    };
-
-    // 各HTTPメソッドに Lambda をマッピング
-    for (const method in props.methodToLambdaMap) {
-      if (method === "OPTIONS") {
-        // OPTIONSメソッドは認証なしで設定
-        resource.addMethod(
-          method,
-          new apigateway.LambdaIntegration(props.methodToLambdaMap[method]),
-          optionsMethodOptions
-        );
-      } else {
-        resource.addMethod(
-          method,
-          new apigateway.LambdaIntegration(props.methodToLambdaMap[method]),
-          methodOptions
-        );
-      }
+    // HTTP メソッドと Lambda を紐付け
+    for (const [method, fn] of Object.entries(props.methodToLambdaMap)) {
+      resource.addMethod(
+        method,
+        new apigateway.LambdaIntegration(fn),
+        methodOptions
+      );
     }
 
-    // GETメソッドを /test/{userId} にも設定
+    // /<route>/{userId} の GET
     if (props.methodToLambdaMap["GET"]) {
       resourceWithId.addMethod(
         "GET",
         new apigateway.LambdaIntegration(props.methodToLambdaMap["GET"]),
         methodOptions
-      );
-    }
-
-    // OPTIONSメソッドを /test/{userId} にも設定（認証なし）
-    if (props.methodToLambdaMap["OPTIONS"] || props.methodToLambdaMap["GET"]) {
-      resourceWithId.addMethod(
-        "OPTIONS",
-        new apigateway.LambdaIntegration(
-          props.methodToLambdaMap["OPTIONS"] || props.methodToLambdaMap["GET"]
-        ),
-        optionsMethodOptions
       );
     }
   }
