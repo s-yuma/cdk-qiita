@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -73,6 +73,54 @@ const theme = createTheme({
 export default function KnowledgeListPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+
+    useEffect(() => {
+    const fetchToken = async () => {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get("code");
+      if (!code) return;
+
+      // トークン取得
+      const params = new URLSearchParams();
+      params.append("grant_type", "authorization_code");
+      params.append("client_id", "6vt0fm4pbts1fj9a3h2v9b8b20");
+      params.append("code", code);
+      params.append(
+        "redirect_uri",
+        "https://main.d3j2oob05fmjqq.amplifyapp.com/"
+      );
+
+      try {
+        const res = await fetch(
+          "https://my-app-hosted-ui-demo.auth.ap-northeast-1.amazoncognito.com/oauth2/token",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: params.toString(),
+          }
+        );
+
+        const data = await res.json();
+        if (data.id_token) {
+          console.log("✅ id_token:", data.id_token);
+          localStorage.setItem("id_token", data.id_token);
+          localStorage.setItem("access_token", data.access_token);
+          localStorage.setItem("refresh_token", data.refresh_token);
+
+          // クエリパラメータを削除（再読み込みしない）
+          router.replace("/", undefined);
+        } else {
+          console.error("トークン取得失敗:", data);
+        }
+      } catch (err) {
+        console.error("通信エラー:", err);
+      }
+    };
+
+    fetchToken();
+  }, [router]);
 
 
   const { knowledgeData, isLoading, isError } = useKnowledgeData();
